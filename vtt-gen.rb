@@ -18,20 +18,20 @@ cues.collect! do |cue|
   # Kludge for italics bug (an italicized word after a timestamp doesn't get temporally placed, but it works if the opening tag appears before the timestamp)
   # TODO: this doesn't work when cues start with italics and are joined with _
   cue.text.gsub!(/ \*/, '* ') if word_count > 1
-  
+
   if @dividing_words
     cue.text = cue.split_timed.each_with_index.inject("") do |memo, (obj, i)|
-      puts "Failed at #{cue}" if obj.nil? 
-      prefix = "<#{(cue.start + (i + 1) * word_time)}>" 
+      puts "Failed at #{cue}" if obj.nil?
+      prefix = "<#{(cue.start + (i + 1) * word_time)}>"
       split = obj.partition(/[ \-\n]*\Z/)
 
       memo << "#{split[0]}#{prefix}#{split[1]}"
     end
-    
-    # cue.text.gsub!(/[ \-\n]+(?![^\[]*\])/).with_index do |separator, i| 
-    #     prefix = "<#{(cue.start + (i + 1) * word_time)}>" 
+
+    # cue.text.gsub!(/[ \-\n]+(?![^\[]*\])/).with_index do |separator, i|
+    #     prefix = "<#{(cue.start + (i + 1) * word_time)}>"
     #     #(cue.start + (i + 1) * word_time).strftime("<%H:%M:%S.%L>")
-    #   
+    #
     #     "#{prefix}#{separator}"
     # end
   end
@@ -43,7 +43,7 @@ cues.collect! do |cue|
 end
 
 i = 0
-while i < cues.size 
+while i < cues.size
   # Combine cues explicitly joined by an initial '_'
   while cues[i + 1] && cues[i + 1].text.start_with?('_')
     #cues[i].text << cues[i + 1].start.strftime("<%H:%M:%S.%L> ") << cues[i + 1].text[1..-1]
@@ -58,21 +58,21 @@ while i < cues.size
     cues[i].end = cues[i + 1].end
     cues.delete_at(i + 1)
   end
-  
-  # Conjoin cues separated by less than 4 seconds, 
-  # or else pad by 2 seconds 
+
+  # Conjoin cues separated by less than 4 seconds,
+  # or else pad by 2 seconds
   if cues[i + 1] && (cues[i].end + 4) > cues[i + 1].start
     cues[i].end = cues[i + 1].start
     cues[i].end -= 0.01 unless @dividing_words
   else
     cues[i].end += 2
   end
-  
+
   # Add a final cue, for some reason
   #if @dividing_words
   # cues[i].text << "<#{cues[i].end}>" # .strftime("<%H:%M:%S.%L>")
   #end
-  
+
   if @dividing_words && cues[i].text.lines.count > 1 && cues[i].text.lines[1] != " "
     new_cues = cues[i].split_lines
 
@@ -82,12 +82,12 @@ while i < cues.size
         if cues[i - 1].end == new_cues[nci - 1].start
           cues[i - 1].end = new_cues[nci - 1].end.dup
         end
-        
+
         new_cues[nci - 1].end = new_cues[nci].end
-    
+
         cues[i] = new_cues[nci]
         cues.insert(i, new_cues[nci - 1])
-      
+
         i += 1
       end
       nci += 1
@@ -95,12 +95,12 @@ while i < cues.size
     # if cues[i - 1].end == new_cues[0].start
     #   cues[i - 1].end = new_cues[0].end.dup
     # end
-    #   
+    #
     # new_cues[0].end = new_cues[1].end
-    # 
+    #
     # cues[i] = new_cues[1]
     # cues.insert(i, new_cues[0])
-    # 
+    #
     # i += 1
   end
 
@@ -109,7 +109,7 @@ while i < cues.size
     cues[i - 1].end = cues[i].end
     # cues[i].text << "\n " unless cues[i].text[/\n $/]
   end
-  
+
   i += 1
 end
 
