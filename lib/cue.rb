@@ -1,6 +1,7 @@
 require 'strscan'
 require './lib/duration.rb'
 
+# An individual caption.
 class Cue
   include Comparable
   attr_accessor :start, :end, :text, :style
@@ -8,13 +9,13 @@ class Cue
   def self.parse(cue)
     timing = cue.lines[0].partition(' --> ')
 
-    start = Duration.parse(timing[0]) # Time.parse(timing[0])
-    end_time = Duration.parse(timing[2]) #Time.parse(timing[2])
+    start = Duration.parse(timing[0])
+    end_time = Duration.parse(timing[2])
 
-    style = timing[2].partition(' ')[2].chomp
+    style = timing[2][/(?<= ).*(?=\n)/]
     text = cue.lines[1..-1].join.strip
 
-    self.new(start, end_time, text, style)
+    new(start, end_time, text, style)
   end
 
   def initialize(start, end_time, text, style = '')
@@ -29,8 +30,8 @@ class Cue
   end
 
   def to_s
-    #"#{@start.strftime("%H:%M:%S.%L")} --> #{@end.strftime("%H:%M:%S.%L")}\n" << @text << "\n\n"
-    "#{@start.to_s} --> #{@end.to_s}#{" #{@style}" unless style.empty?}\n" << @text << "\n\n"
+    # "#{@start.strftime("%H:%M:%S.%L")} --> #{@end.strftime("%H:%M:%S.%L")}\n" << @text << "\n\n"
+    "#{@start} --> #{@end}#{" #{@style}" unless style.empty?}\n" << @text << "\n\n"
   end
 
   def split_lines
@@ -39,7 +40,7 @@ class Cue
 
   # TODO: Fails on multiline bracketed cues (e.g. [a long\nsound effect])
   def self.split_lines(cue)
-    #cue_c_start = Duration.parse(cue.text.lines[0][/<(\d+:\d\d:\d\d.\d\d\d)>[ -]?\n$/, 1])
+    # cue_c_start = Duration.parse(cue.text.lines[0][/<(\d+:\d\d:\d\d.\d\d\d)>[ -]?\n$/, 1])
     first_line_time = cue.text.lines[0][/<(\d+:\d\d:\d\d.\d\d\d)>[ -]?\n$/, 1]
     cue_c_start =
       if first_line_time
@@ -48,17 +49,18 @@ class Cue
         cue.start
       end
 
-     #Time.parse(cue.text.lines[0][/<(\d+:\d\d:\d\d.\d\d\d)> ?\n$/, 1])
+     # Time.parse(cue.text.lines[0][/<(\d+:\d\d:\d\d.\d\d\d)> ?\n$/, 1])
 
     cue_a = Cue.new(cue.start, cue_c_start, cue.text.lines[0].strip, cue.style)
-    #cue_c = Cue.new(cue_c_start, cue.end, scrubbed_text.dup << cue.text.lines[1..-1].join.chomp)
-    #  cue_c = Cue.new(cue_c_start, cue.end, cue.text.lines[1..-1].join.strip, cue.style)# << cue.end.strftime("<%H:%M:%S.%L>\n "))
+    # cue_c = Cue.new(cue_c_start, cue.end, scrubbed_text.dup << cue.text.lines[1..-1].join.chomp)
+    #   cue_c = Cue.new(cue_c_start, cue.end, cue.text.lines[1..-1].join.strip, cue.style)# << cue.end.strftime("<%H:%M:%S.%L>\n "))
     if cue.text.lines.count > 2
       cue_c = split_lines(Cue.new(cue_c_start, cue.end, cue.text.lines[1..-1].join.strip, cue.style))
 
       [cue_a, *cue_c]
     else
-      cue_c = Cue.new(cue_c_start, cue.end, cue.text.lines[1..-1].join.strip, cue.style)# << cue.end.strftime("<%H:%M:%S.%L>\n "))
+      cue_c = Cue.new(cue_c_start, cue.end, cue.text.lines[1..-1].join.strip, cue.style) 
+      # << cue.end.strftime("<%H:%M:%S.%L>\n "))
 
       [cue_a, cue_c]
     end

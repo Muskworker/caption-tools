@@ -14,7 +14,7 @@ class VTT
     chunks = vtt.split("\n\n")
 
     head = chunks[0]
-    cues = chunks[1..-1].collect {|cue| Cue.parse(cue) }
+    cues = chunks[1..-1].collect { |cue| Cue.parse(cue) }
 
     self.new(head, cues)
   end

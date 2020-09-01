@@ -46,7 +46,7 @@ i = 0
 while i < cues.size
   # Combine cues explicitly joined by an initial '_'
   while cues[i + 1] && cues[i + 1].text.start_with?('_')
-    #cues[i].text << cues[i + 1].start.strftime("<%H:%M:%S.%L> ") << cues[i + 1].text[1..-1]
+    # cues[i].text << cues[i + 1].start.strftime("<%H:%M:%S.%L> ") << cues[i + 1].text[1..-1]
     if cues[i + 1].text.start_with?('_<i>') # youtube can't <i> at the beginning of a cue
       partition = cues[i].text.rpartition(/<.*>[ \-\n]*\Z/)
       partition[1].prepend('<i>')
@@ -69,9 +69,9 @@ while i < cues.size
   end
 
   # Add a final cue, for some reason
-  #if @dividing_words
-  # cues[i].text << "<#{cues[i].end}>" # .strftime("<%H:%M:%S.%L>")
-  #end
+  # if @dividing_words
+  #  cues[i].text << "<#{cues[i].end}>" # .strftime("<%H:%M:%S.%L>")
+  # end
 
   if @dividing_words && cues[i].text.lines.count > 1 && cues[i].text.lines[1] != " "
     new_cues = cues[i].split_lines
@@ -114,16 +114,16 @@ while i < cues.size
 end
 
 puts vtt.to_s
-#puts head << "\n\n" << cues.collect(&:to_s).join
-# puts <<-HEADER
-# <tt ttp:cellResolution="60 20" xml:lang="en" xmlns="http://www.w3.org/ns/ttml"
-#   xmlns:ttp="http://www.w3.org/ns/ttml#parameter" xmlns:tts="http://www.w3.org/ns/ttml#styling">
-#   <head>
-#     <layout>
-#       <region xml:id="r1" tts:color="white" tts:origin="10c 4c" tts:extent="40c 5c" tts:displayAlign="after"/>
-#     </layout>
-#   </head>
-#   <body>
-# HEADER
-# puts Cue.to_xml(cues)
-# puts "</body></tt>"
+# puts head << "\n\n" << cues.collect(&:to_s).join
+#  puts <<-HEADER
+#  <tt ttp:cellResolution="60 20" xml:lang="en" xmlns="http://www.w3.org/ns/ttml"
+#    xmlns:ttp="http://www.w3.org/ns/ttml#parameter" xmlns:tts="http://www.w3.org/ns/ttml#styling">
+#    <head>
+#      <layout>
+#        <region xml:id="r1" tts:color="white" tts:origin="10c 4c" tts:extent="40c 5c" tts:displayAlign="after"/>
+#      </layout>
+#    </head>
+#    <body>
+#  HEADER
+#  puts Cue.to_xml(cues)
+#  puts "</body></tt>"
