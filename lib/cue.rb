@@ -30,7 +30,6 @@ class Cue
   end
 
   def to_s
-    # "#{@start.strftime("%H:%M:%S.%L")} --> #{@end.strftime("%H:%M:%S.%L")}\n" << @text << "\n\n"
     "#{@start} --> #{@end}#{" #{@style}" unless style.empty?}\n" << @text << "\n\n"
   end
 
@@ -40,7 +39,6 @@ class Cue
 
   # TODO: Fails on multiline bracketed cues (e.g. [a long\nsound effect])
   def self.split_lines(cue)
-    # cue_c_start = Duration.parse(cue.text.lines[0][/<(\d+:\d\d:\d\d.\d\d\d)>[ -]?\n$/, 1])
     first_line_time = cue.text.lines[0][/<(\d+:\d\d:\d\d.\d\d\d)>[ -]?\n$/, 1]
     cue_c_start =
       if first_line_time
@@ -49,18 +47,13 @@ class Cue
         cue.start
       end
 
-     # Time.parse(cue.text.lines[0][/<(\d+:\d\d:\d\d.\d\d\d)> ?\n$/, 1])
-
     cue_a = Cue.new(cue.start, cue_c_start, cue.text.lines[0].strip, cue.style)
-    # cue_c = Cue.new(cue_c_start, cue.end, scrubbed_text.dup << cue.text.lines[1..-1].join.chomp)
-    #   cue_c = Cue.new(cue_c_start, cue.end, cue.text.lines[1..-1].join.strip, cue.style)# << cue.end.strftime("<%H:%M:%S.%L>\n "))
     if cue.text.lines.count > 2
       cue_c = split_lines(Cue.new(cue_c_start, cue.end, cue.text.lines[1..-1].join.strip, cue.style))
 
       [cue_a, *cue_c]
     else
       cue_c = Cue.new(cue_c_start, cue.end, cue.text.lines[1..-1].join.strip, cue.style) 
-      # << cue.end.strftime("<%H:%M:%S.%L>\n "))
 
       [cue_a, cue_c]
     end
@@ -71,7 +64,6 @@ class Cue
     next_start = @start
     cues.each_slice(2).collect do |(text, time)|
       time = time ? Duration.parse(time) : @end
-      # time = Duration.parse(time) if time
       Cue.new(next_start, next_start = time, text, style)
     end
   end
@@ -107,7 +99,6 @@ class Cue
   #   >> SPEAKER (doing thusly):
   # token boundaries: [ \-\n]
   def split_timed
-    # text.lines.join(" ").split(/[ \-\n]+(?![^\[]*\])/)
     scanner = StringScanner.new(text)
     tokens = []
     append = false

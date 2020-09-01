@@ -21,6 +21,5 @@ class VTT
 
   def to_s
     puts head << "\n\n" << cues.sort.collect(&:to_s).join
-    # puts head << "\n\n" << cues.collect(&:to_s).join
   end
 end
