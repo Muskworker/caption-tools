@@ -8,9 +8,9 @@ class Duration < Numeric
   end
 
   def self.parse(time)
-    raise ArgumentError, "#{time} is not a valid timestamp" unless time =~ /(\d+):(\d\d):(\d\d.\d\d\d)/
+    raise ArgumentError, "#{time} is not a valid timestamp" unless time =~ /(\d+):(\d\d):(\d\d.\d\d\d?)/
 
-    values = time.scan(/(\d+):(\d\d):(\d\d.\d\d\d)/)[0]
+    values = time.scan(/(\d+):(\d\d):(\d\d.\d\d\d?)/)[0]
 
     seconds = values[2].to_f + values[1].to_i * 60 + values[0].to_i * 60 * 60
 
