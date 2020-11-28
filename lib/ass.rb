@@ -32,8 +32,20 @@ class ASS
     end_time = Duration.parse(cue[2])
 
     style = cue[3]
-    text = cue[9..-1].join(',').gsub(/<\/?i>/, '*').gsub('\N', "\n").strip
+    text = cue[9..-1].join(',')
+                     .gsub(/<\/?i>/, '*')
+                     .gsub('\N', "\n")
+                     .gsub(/(?!\\(\\\\)*)\{\\.*?\}/) {|m| style_code_to_html(m) }
+                     .strip
 
     Cue.new(start, end_time, text, style)
+  end
+  
+  def self.style_code_to_html(code)
+    outcomes = { '{\i1}' => '<i>', '{\i0}' => '</i>',
+                 '{\b1}' => '<b>', '{\b0}' => '</b>',
+                 '{\u1}' => '<u>', '{\u0}' => '</u>' }
+    
+    code.gsub(/.*/, outcomes)
   end
 end
