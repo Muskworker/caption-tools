@@ -3,6 +3,7 @@
 require './lib/cue.rb'
 require 'csv'
 
+# Advanced SubStation (ASS) caption file functions
 class ASS
   attr_accessor :head, :cues
 

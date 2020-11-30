@@ -3,6 +3,7 @@
 
 require './lib/ass.rb'
 
+# Convert ASS (Advanced SubStation) caption files to YouTube's flavor of WebVTT
 class Ass2Vtt
   def self.run
     @file = ARGV[-1]
@@ -78,7 +79,7 @@ class Ass2Vtt
       end
 
       # Keep cue onscreen to scroll onto next
-      cues[i - 1].end = cues[i].end if @dividing_words && cues[i - 1] && cues[i - 1].end >= cues[i].start && i > 0
+      cues[i - 1].end = cues[i].end if @dividing_words && cues[i - 1] && cues[i - 1].end >= cues[i].start && i.positive?
 
       i += 1
     end
@@ -86,8 +87,8 @@ class Ass2Vtt
     puts vtt.to_s
   end
 
-  # Kludge for italics bug (an italicized word after a timestamp doesn't get temporally placed, but it works if the opening tag appears before the timestamp)
-  # TODO: this doesn't work when cues start with italics and are joined with _
+  # Kludge for italics bug (an italicized word after a timestamp doesn't get temporally placed,
+  # but it works if the opening tag appears before the timestamp)
   def self.youtube_adjust(str)
     str.gsub(/ (\*|<[ubi]>)/, '\1 ')
   end
