@@ -6,7 +6,7 @@ class Ass2Vtt
   def self.run
     @file = ARGV[-1]
     @dividing_words = ARGV.include?('--words') || ARGV.include?('-w')
-    
+
     vtt = ASS.read(@file)
     cues = vtt.cues
 
@@ -17,7 +17,7 @@ class Ass2Vtt
       youtube_adjust(cue.text) if word_count > 1
 
       if @dividing_words
-        cue.text = cue.split_timed.each_with_index.inject("") do |memo, (obj, i)|
+        cue.text = cue.split_timed.each_with_index.inject('') do |memo, (obj, i)|
           puts "Failed at #{cue}" if obj.nil?
           prefix = "<#{(cue.start + (i + 1) * word_time)}>"
           split = obj.partition(/[ \-\n]*\Z/)
@@ -35,7 +35,7 @@ class Ass2Vtt
     i = 0
     while i < cues.size
       # Combine cues explicitly joined by an initial '_'
-      while cues[i + 1] && cues[i + 1].text.start_with?('_')
+      while cues[i + 1]&.text&.start_with?('_')
         if cues[i + 1].text.start_with?('_<i>') # youtube can't <i> at the beginning of a cue
           partition = cues[i].text.rpartition(/<.*>[ \-\n]*\Z/)
           partition[1].prepend('<i>')
@@ -57,15 +57,13 @@ class Ass2Vtt
         cues[i].end += 2
       end
 
-      if @dividing_words && cues[i].text.lines.count > 1 && cues[i].text.lines[1] != " "
+      if @dividing_words && cues[i].text.lines.count > 1 && cues[i].text.lines[1] != ' '
         new_cues = cues[i].split_lines
 
         nci = 1
         while nci < new_cues.size
           unless new_cues[nci].text.strip.empty?
-            if cues[i - 1].end == new_cues[nci - 1].start
-              cues[i - 1].end = new_cues[nci - 1].end.dup
-            end
+            cues[i - 1].end = new_cues[nci - 1].end.dup if cues[i - 1].end == new_cues[nci - 1].start
 
             new_cues[nci - 1].end = new_cues[nci].end
 
@@ -79,16 +77,14 @@ class Ass2Vtt
       end
 
       # Keep cue onscreen to scroll onto next
-      if @dividing_words && cues[i - 1] && cues[i - 1].end >= cues[i].start && i > 0
-        cues[i - 1].end = cues[i].end
-      end
+      cues[i - 1].end = cues[i].end if @dividing_words && cues[i - 1] && cues[i - 1].end >= cues[i].start && i > 0
 
       i += 1
     end
 
     puts vtt.to_s
   end
-  
+
   # Kludge for italics bug (an italicized word after a timestamp doesn't get temporally placed, but it works if the opening tag appears before the timestamp)
   # TODO: this doesn't work when cues start with italics and are joined with _
   def self.youtube_adjust(str)
@@ -96,6 +92,4 @@ class Ass2Vtt
   end
 end
 
-if __FILE__ == $PROGRAM_NAME
-  Ass2Vtt.run
-end
+Ass2Vtt.run if __FILE__ == $PROGRAM_NAME
