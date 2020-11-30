@@ -1,4 +1,5 @@
 #!/usr/bin/ruby -w
+# frozen_string_literal: true
 
 require './lib/ass.rb'
 
@@ -14,7 +15,7 @@ class Ass2Vtt
       word_count = cue.split_timed.count
       word_time = cue.length / [word_count + 1, 1].max
 
-      youtube_adjust(cue.text) if word_count > 1
+      cue.text = youtube_adjust(cue.text) if word_count > 1
 
       if @dividing_words
         cue.text = cue.split_timed.each_with_index.inject('') do |memo, (obj, i)|
@@ -88,7 +89,7 @@ class Ass2Vtt
   # Kludge for italics bug (an italicized word after a timestamp doesn't get temporally placed, but it works if the opening tag appears before the timestamp)
   # TODO: this doesn't work when cues start with italics and are joined with _
   def self.youtube_adjust(str)
-    str.gsub!(/ (\*|<[ubi]>)/, '\1 ')
+    str.gsub(/ (\*|<[ubi]>)/, '\1 ')
   end
 end
 
