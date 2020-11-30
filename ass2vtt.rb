@@ -24,7 +24,7 @@ class Ass2Vtt
           prefix = "<#{(cue.start + (i + 1) * word_time)}>"
           split = obj.partition(/[ \-\n]*\Z/)
 
-          memo << "#{split[0]}#{prefix}#{split[1]}"
+          memo + "#{split[0]}#{prefix}#{split[1]}"
         end
       end
 
