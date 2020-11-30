@@ -33,7 +33,6 @@ class ASS
 
     style = cue[3]
     text = cue[9..-1].join(',')
-                     .gsub(/<\/?i>/, '*')
                      .gsub('\N', "\n")
                      .gsub(/(?!\\(\\\\)*)\{\\.*?\}/) {|m| style_code_to_html(m) }
                      .strip
