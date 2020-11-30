@@ -1,5 +1,3 @@
-#!/usr/bin/ruby -w
-
 require 'minitest/autorun'
 require './lib/ass.rb'
 
