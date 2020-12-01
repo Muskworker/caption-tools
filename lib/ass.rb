@@ -48,6 +48,10 @@ class ASS
                  '{\b1}' => '<b>', '{\b0}' => '</b>',
                  '{\u1}' => '<u>', '{\u0}' => '</u>' }
 
-    code.gsub(/.*/, outcomes)
+    if outcomes.keys.include?(code)
+      code.gsub(/.*/, outcomes)
+    else
+      code
+    end
   end
 end

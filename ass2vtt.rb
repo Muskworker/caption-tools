@@ -29,7 +29,7 @@ class Ass2Vtt
       end
 
       # Italics
-      cue.text.gsub!(/\*(.+?)\*/, '<i>\\1</i>')
+      cue.text = cue.text.gsub(/\*(.+?)\*/, '<i>\\1</i>')
 
       cue
     end
