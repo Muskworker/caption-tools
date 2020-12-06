@@ -13,25 +13,7 @@ class Ass2Vtt
     cues = vtt.cues
 
     cues.collect! do |cue|
-      word_count = cue.split_timed.count
-      word_time = cue.length / [word_count + 1, 1].max
-
-      cue.text = youtube_adjust(cue.text) if word_count > 1
-
-      if @dividing_words
-        cue.text = cue.split_timed.each_with_index.inject('') do |memo, (obj, i)|
-          puts "Failed at #{cue}" if obj.nil?
-          prefix = "<#{(cue.start + (i + 1) * word_time)}>"
-          split = obj.partition(/[ \-\n]*\Z/)
-
-          memo + "#{split[0]}#{prefix}#{split[1]}"
-        end
-      end
-
-      # Italics
-      cue.text = cue.text.gsub(/\*(.+?)\*/, '<i>\\1</i>')
-
-      cue
+      parse_cue(cue)
     end
 
     i = 0
@@ -91,6 +73,58 @@ class Ass2Vtt
   # but it works if the opening tag appears before the timestamp)
   def self.youtube_adjust(str)
     str.gsub(/ (\*|<[ubi]>)/, '\1 ')
+  end
+
+  # The karaoke function code is {\k<duration>}, where <duration> is hundredths of seconds
+  def self.karaoke_split(cue)
+    cue.text.split(/(?!\\(\\\\)*)(\{\\k(\d*?)\}.*?)/)
+  end
+
+  # Divide a cue by karaoke timings
+  def self.time_karaoke(cue)
+    karaoke_cues = karaoke_split(cue)
+    cue.text = karaoke_cues.shift
+    latest_start = cue.start
+
+    karaoke_cues.each_slice(3).inject(cue.text) do |memo, (_, time, text)|
+      latest_start += time.to_f / 100
+      postfix = "<#{latest_start}>"
+
+      memo + text + postfix
+    end
+  end
+
+  # Divide a cue equally by number of words, sort of
+  def self.time_words(cue)
+    # Duration of cue / "word" count + 1
+    words = cue.split_timed
+    word_time = cue.length / (words.count + 1)
+
+    words.each_with_index.inject('') do |memo, (obj, i)|
+      word, spacer, = obj&.partition(/[ \-\n]*\Z/)
+
+      memo + "#{word}<#{(cue.start + (i + 1) * word_time)}>#{spacer}"
+    end
+  end
+
+  # Cue formatting and timing
+  def self.parse_cue(cue)
+    karaoke_cue_count = karaoke_split(cue).count
+    ass_timed = karaoke_cue_count > 1
+
+    word_count = ass_timed ? karaoke_cue_count : cue.split_timed.count
+
+    cue.text = youtube_adjust(cue.text) if word_count > 1
+
+    cue.text = if    ass_timed       then time_karaoke(cue)
+               elsif @dividing_words then time_words(cue)
+               else  cue.text
+               end
+
+    # Markdown-style talics
+    cue.text = cue.text.gsub(/\*(.+?)\*/, '<i>\\1</i>')
+
+    cue
   end
 end
 
