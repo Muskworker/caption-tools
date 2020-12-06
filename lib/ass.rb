@@ -36,8 +36,7 @@ class ASS
 
     style = cue[3]
     text = cue[9..-1].join(',')
-                     .gsub('\N', "\n")
-                     .gsub(/(?!\\(\\\\)*)\{\\.*?\}/) { |m| style_code_to_html(m) }
+                     .gsub(/\{\\.*?\}|\\N/) { |m| style_code_to_html(m) }
                      .strip
 
     Cue.new(start, end_time, text, style)
@@ -46,7 +45,8 @@ class ASS
   def self.style_code_to_html(code)
     outcomes = { '{\i1}' => '<i>', '{\i0}' => '</i>',
                  '{\b1}' => '<b>', '{\b0}' => '</b>',
-                 '{\u1}' => '<u>', '{\u0}' => '</u>' }
+                 '{\u1}' => '<u>', '{\u0}' => '</u>',
+                 '\N' => "\n" }
 
     if outcomes.keys.include?(code)
       code.gsub(/.*/, outcomes)
