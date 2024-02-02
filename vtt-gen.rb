@@ -1,6 +1,6 @@
 #!/usr/bin/ruby -w
 
-require './lib/vtt.rb'
+require './lib/vtt'
 
 @file = ARGV[-1]
 @dividing_words = ARGV.include?('--words') || ARGV.include?('-w')
@@ -17,9 +17,9 @@ cues.collect! do |cue|
   cue.text.gsub!(/ \*/, '* ') if word_count > 1
 
   if @dividing_words
-    cue.text = cue.split_timed.each_with_index.inject("") do |memo, (obj, i)|
+    cue.text = cue.split_timed.each_with_index.inject('') do |memo, (obj, i)|
       puts "Failed at #{cue}" if obj.nil?
-      prefix = "<#{(cue.start + (i + 1) * word_time)}>"
+      prefix = "<#{cue.start + (i + 1) * word_time}>"
       split = obj.partition(/[ \-\n]*\Z/)
 
       memo << "#{split[0]}#{prefix}#{split[1]}"
@@ -57,15 +57,13 @@ while i < cues.size
     cues[i].end += 2
   end
 
-  if @dividing_words && cues[i].text.lines.count > 1 && cues[i].text.lines[1] != " "
+  if @dividing_words && cues[i].text.lines.count > 1 && cues[i].text.lines[1] != ' '
     new_cues = cues[i].split_lines
 
     nci = 1
     while nci < new_cues.size
       unless new_cues[nci].text.strip.empty?
-        if cues[i - 1].end == new_cues[nci - 1].start
-          cues[i - 1].end = new_cues[nci - 1].end.dup
-        end
+        cues[i - 1].end = new_cues[nci - 1].end.dup if cues[i - 1].end == new_cues[nci - 1].start
 
         new_cues[nci - 1].end = new_cues[nci].end
 
@@ -79,11 +77,9 @@ while i < cues.size
   end
 
   # Keep cue onscreen to scroll onto next
-  if @dividing_words && cues[i - 1] && cues[i - 1].end >= cues[i].start && i > 0
-    cues[i - 1].end = cues[i].end
-  end
+  cues[i - 1].end = cues[i].end if @dividing_words && cues[i - 1] && cues[i - 1].end >= cues[i].start && i > 0
 
   i += 1
 end
 
-puts vtt.to_s
+puts vtt

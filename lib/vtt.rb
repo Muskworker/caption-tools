@@ -1,5 +1,5 @@
-require './lib/cue.rb'
-require './lib/duration.rb'
+require './lib/cue'
+require './lib/duration'
 
 class VTT
   attr_accessor :head, :cues
@@ -17,13 +17,13 @@ class VTT
     head = chunks[0]
     cues = chunks[1..-1].collect { |cue| parse_cue(cue) }
 
-    self.new(head, cues)
+    new(head, cues)
   end
 
   def to_s
     puts head << "\n\n" << cues.sort.collect(&:to_s).join
   end
-  
+
   def self.parse_cue(cue)
     timing = cue.lines[0].partition(' --> ')
 

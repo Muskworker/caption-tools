@@ -1,5 +1,5 @@
 require 'strscan'
-require './lib/duration.rb'
+require_relative 'duration'
 
 # An individual caption.
 class Cue
@@ -53,7 +53,7 @@ class Cue
 
       [cue_a, *cue_c]
     else
-      cue_c = Cue.new(cue_c_start, cue.end, cue.text.lines[1..-1].join.strip, cue.style) 
+      cue_c = Cue.new(cue_c_start, cue.end, cue.text.lines[1..-1].join.strip, cue.style)
 
       [cue_a, cue_c]
     end
@@ -104,20 +104,20 @@ class Cue
     append = false
     will_append = false
     brackets = 0
-    word_divider = /[ \-\n]+|\Z/ #
+    word_divider = /[ \-\n]+|\Z/
 
     # Check for speaker
-    if scanner.peek(2) == ">>" || /[[:lower:]]|\[/ !~ (scanner.check_until(/:/) || "no")
+    if scanner.peek(2) == '>>' || /[[:lower:]]|\[/ !~ (scanner.check_until(/:/) || 'no')
       append = true
       tokens << scanner.scan_until(/:[ \n]+/)
     end
 
-    while !scanner.eos?
+    until scanner.eos?
       next_word = scanner.scan_until(word_divider)
-      brackets += next_word.count("[") - next_word.count("]")
-      append ||= next_word.start_with?("[_")
+      brackets += next_word.count('[') - next_word.count(']')
+      append ||= next_word.start_with?('[_')
       will_append = next_word =~ (/_\]#{word_divider}/)
-      next_word = next_word.sub(/\[_/, "[").sub(/_\]/, "]")
+      next_word = next_word.sub(/\[_/, '[').sub(/_\]/, ']')
 
       if append
         (tokens.last || tokens) << next_word
@@ -128,7 +128,21 @@ class Cue
       append = will_append || brackets > 0
     end
 
-    tokens
+    tokens.compact
+  end
+
+  def self.stretch_ellipses(paused_cue, resumed_cue)
+    paused_cue.text = paused_cue.text.sub(/\.\.\.(<[^<]*?>)$/, '\\1')
+    interval = resumed_cue.start - paused_cue.end
+
+    words = %w[. . .]
+    dot_time = interval / 4
+
+    stretched_text = words.each_with_index.inject('') do |memo, (obj, j)|
+      memo + "#{obj}<#{paused_cue.end + (j + 1) * dot_time}>"
+    end
+
+    paused_cue.text << stretched_text
+    paused_cue.end = resumed_cue.start
   end
 end
-

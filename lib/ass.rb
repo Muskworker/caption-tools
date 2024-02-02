@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 
-require './lib/cue.rb'
+require_relative 'cue'
 require 'csv'
 
 # Advanced SubStation (ASS) caption file functions
@@ -37,7 +37,7 @@ class ASS
     style = cue[3]
     text = cue[9..-1].join(',')
                      .gsub(/\{\\.*?\}|\\N/) { |m| style_code_to_html(m) }
-                     .strip
+                     .each_line.collect { |l| l.strip }.join("\n")
 
     Cue.new(start, end_time, text, style)
   end

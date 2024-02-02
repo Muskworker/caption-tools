@@ -14,7 +14,7 @@ class Duration < Numeric
 
     seconds = values[2].to_f + values[1].to_i * 60 + values[0].to_i * 60 * 60
 
-    self.new(seconds)
+    new(seconds)
   end
 
   def hours
@@ -34,7 +34,8 @@ class Duration < Numeric
   end
 
   def to_s
-    "#{hours.to_s.rjust(2, '0')}:#{minute_part.to_s.rjust(2, '0')}:#{second_part.to_s.rjust(2, '0')}.#{millisecond_part.to_s.rjust(3, '0')}"
+    hms = [hours, minute_part, second_part].collect {|part| part.to_s.rjust(2, '0')}.join(':')
+    "#{hms}.#{millisecond_part.to_s.rjust(3, '0')}"
   end
 
   def to_f
