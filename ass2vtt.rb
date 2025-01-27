@@ -6,11 +6,11 @@ require_relative 'lib/ass'
 # Convert ASS (Advanced SubStation) caption files to YouTube's flavor of WebVTT
 class Ass2Vtt
   @dividing_words = false
-  
+
   class << self
     attr_accessor :dividing_words
   end
-  
+
   def self.run
     @file = ARGV[-1]
     @dividing_words = ARGV.include?('--words') || ARGV.include?('-w')
@@ -23,7 +23,6 @@ class Ass2Vtt
     end
 
     cue_groups = all_cues.group_by(&:style)
-    # all_cues.group_by(&:style).each do |style, cues|
     cue_groups.each do |_style, cues|
       i = 0
       while i < cues.size
@@ -31,18 +30,6 @@ class Ass2Vtt
         # Stretch ellipses
         if @dividing_words && cues[i].text =~ /\.\.\.<[^<]*?>$/ && cues[i + 1]&.text&.start_with?(/_?(\[.*?\])* *[[:lower:]]/)
           Cue.stretch_ellipses(cues[i], cues[i + 1])
-          # cues[i].text = cues[i].text.sub(/\.\.\.(<[^<]*?>)$/, '\\1')
-          # interval = cues[i + 1].start - cues[i].end
-          #
-          # words = %w{. . .}
-          # dot_time = interval / 4
-          #
-          # stretched_text = words.each_with_index.inject('') do |memo, (obj, j)|
-          #   memo + "#{obj}<#{(cues[i].end + (j + 1) * dot_time)}>"
-          # end
-          #
-          # cues[i].text << stretched_text
-          # cues[i].end = cues[i + 1].start
         end
 
         # Combine cues explicitly joined by an initial '_'

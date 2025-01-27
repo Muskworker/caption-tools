@@ -59,6 +59,8 @@ class Cue
     end
   end
 
+  # Split a cue into multiple cues based on the presence of timecodes.
+  # Returns: An array of Cue objects.
   def split
     cues = @text.split(/<(\d+:\d\d:\d\d.\d\d\d)>/)
     next_start = @start
@@ -69,6 +71,7 @@ class Cue
   end
 
   # TODO: style (probably hard)
+  # Convert a cue to an XML string.
   def to_xml
     "<p begin=\"#{@start.seconds}s\" end=\"#{@end.seconds}s\">" \
     << split.collect do |cue|
@@ -77,27 +80,30 @@ class Cue
     << "\n</p>\n"
   end
 
+  # Convert an array of cues to an XML string.
   def self.to_xml(cues)
     "<div region=\"r1\">\n" \
     << cues.collect(&:to_xml).join \
     << "\n</div>\n"
   end
 
+  # Compare cues by start time.
   def <=>(other)
     @start <=> other.start
   end
 
-  # Items that take up time.
-  # Words.
-  # Bracketed expressions, unless linked via "[_" or "_]"
-  # Items that don't take up time.
-  # Bracketed expressions linked with "[_" or "_]"
-  # Speaker introductions, such as:
+  # Items that take up time:
+  # - Words.
+  # - Bracketed expressions, unless linked via "[_" or "_]"
+  # Items that don't take up time:
+  # - Bracketed expressions linked with "[_" or "_]"
+  # - Speaker introductions, such as:
   #   SPEAKER:
   #   >> SPEAKER:
   #   SPEAKER (doing thusly):
   #   >> SPEAKER (doing thusly):
-  # token boundaries: [ \-\n]
+  # - token boundaries: [ \-\n]
+  # Returns: An array of strings.
   def split_timed
     scanner = StringScanner.new(text)
     tokens = []
@@ -131,6 +137,7 @@ class Cue
     tokens.compact
   end
 
+  # A visual effect that stretches the appearance of an ellipsis across a pause.
   def self.stretch_ellipses(paused_cue, resumed_cue)
     paused_cue.text = paused_cue.text.sub(/\.\.\.(<[^<]*?>)$/, '\\1')
     interval = resumed_cue.start - paused_cue.end
