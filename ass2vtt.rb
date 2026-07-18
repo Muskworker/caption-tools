@@ -2,9 +2,19 @@
 # frozen_string_literal: true
 
 require_relative 'lib/ass'
+require_relative 'lib/vtt'
 
 # Convert ASS (Advanced SubStation) caption files to YouTube's flavor of WebVTT
 class Ass2Vtt
+  # VTT cue settings emitted for each ASS style name; styles not listed
+  # here pass through verbatim. region:musky sits mid-screen so it stays
+  # clear of region:game captions in the default position below it.
+  STYLE_SETTINGS = {
+    'Default' => '',
+    'region:game' => '',
+    'region:musky' => 'line:50% position:0% size:75% align:left'
+  }.freeze
+
   @dividing_words = false
 
   class << self
@@ -83,9 +93,15 @@ class Ass2Vtt
       end
     end
 
-    vtt.cues = cue_groups.values.flatten
+    cues = cue_groups.values.flatten
+    cues.each { |cue| cue.style = settings_for(cue.style) }
 
-    puts vtt
+    puts VTT.new('WEBVTT', cues)
+  end
+
+  # The VTT cue settings to emit for an ASS style name
+  def self.settings_for(style)
+    STYLE_SETTINGS.fetch(style, style)
   end
 
   # Kludge for italics bug (an italicized word after a timestamp doesn't get temporally placed,
