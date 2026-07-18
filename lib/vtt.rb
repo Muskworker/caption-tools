@@ -1,5 +1,5 @@
-require './lib/cue'
-require './lib/duration'
+require_relative 'cue'
+require_relative 'duration'
 
 class VTT
   attr_accessor :head, :cues

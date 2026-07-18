@@ -13,7 +13,8 @@ class ASS
   end
 
   def self.read(file)
-    ass = File.read(file)
+    # Read as UTF-8 regardless of locale (matching VTT.read)
+    ass = File.read(file, encoding: 'bom|utf-8')
 
     chunks = ass.split("\n\n")
 
