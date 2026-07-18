@@ -10,7 +10,8 @@ class VTT
   end
 
   def self.read(file)
-    vtt = File.read(file)
+    # WebVTT files are always UTF-8, regardless of locale
+    vtt = File.read(file, encoding: 'bom|utf-8')
 
     chunks = vtt.split("\n\n")
 
@@ -21,7 +22,7 @@ class VTT
   end
 
   def to_s
-    puts head << "\n\n" << cues.sort.collect(&:to_s).join
+    head + "\n\n" + cues.sort.collect(&:to_s).join
   end
 
   def self.parse_cue(cue)
@@ -30,7 +31,7 @@ class VTT
     start = Duration.parse(timing[0])
     end_time = Duration.parse(timing[2])
 
-    style = timing[2][/(?<= ).*(?=\n)/]
+    style = timing[2][/(?<= ).*(?=\n)/] || ''
     text = cue.lines[1..-1].join.strip
 
     Cue.new(start, end_time, text, style)
