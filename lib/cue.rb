@@ -12,7 +12,7 @@ class Cue
     start = Duration.parse(timing[0])
     end_time = Duration.parse(timing[2])
 
-    style = timing[2][/(?<= ).*(?=\n)/]
+    style = timing[2][/(?<= ).*(?=\n)/] || ''
     text = cue.lines[1..-1].join.strip
 
     new(start, end_time, text, style)
@@ -135,6 +135,51 @@ class Cue
     end
 
     tokens.compact
+  end
+
+  # Merge cues that are onscreen at the same time into single stacked cues,
+  # for renderers (i.e. YouTube, once any cue in the file carries settings)
+  # that superimpose concurrent cues instead of rolling them up.
+  # Cues are grouped by their settings string first, so captions anchored
+  # to different screen regions are never merged together.
+  # Returns: A new array of Cue objects, sorted by start time.
+  def self.merge_concurrent(cues)
+    cues.group_by { |cue| cue.style.to_s }.values.flat_map do |group|
+      cluster_concurrent(group).flat_map do |cluster|
+        cluster.count > 1 ? merge_cluster(cluster) : cluster
+      end
+    end.sort
+  end
+
+  # Chain cues into clusters where each cue starts before the cluster ends.
+  # Returns: An array of arrays of Cue objects.
+  def self.cluster_concurrent(cues)
+    cluster_end = nil
+
+    cues.sort.each_with_object([]) do |cue, clusters|
+      if cluster_end && cue.start < cluster_end
+        clusters.last << cue
+        cluster_end = [cluster_end, cue.end].max
+      else
+        clusters << [cue]
+        cluster_end = cue.end
+      end
+    end
+  end
+
+  # Split a cluster's timeline at every cue boundary and emit one cue per
+  # segment, stacking the text of every cue active during that segment
+  # (earliest first, matching roll-up order).
+  # Returns: An array of Cue objects.
+  def self.merge_cluster(cluster)
+    bounds = cluster.flat_map { |cue| [cue.start, cue.end] }.sort.uniq(&:to_f)
+
+    bounds.each_cons(2).collect do |seg_start, seg_end|
+      active = cluster.select { |cue| cue.start <= seg_start && cue.end >= seg_end }
+      next if active.empty?
+
+      new(seg_start, seg_end, active.collect(&:text).join("\n"), active.first.style)
+    end.compact
   end
 
   # A visual effect that stretches the appearance of an ellipsis across a pause.
