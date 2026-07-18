@@ -48,13 +48,46 @@ class TestAss2Vtt < Minitest::Test
   ASS
 
   def test_run_emits_a_valid_webvtt_document
-    fixture = File.join(Dir.tmpdir, 'ass2vtt_fixture.ass')
-    File.write(fixture, FIXTURE_ASS)
-
-    output = `ruby #{File.join(__dir__, '..', 'ass2vtt.rb')} "#{fixture}" 2>/dev/null`
+    output = run_ass2vtt(FIXTURE_ASS)
 
     assert output.start_with?("WEBVTT\n\n"), "expected WEBVTT header, got: #{output.lines.first.inspect}"
     assert_includes output, "00:00:01.000 --> 00:00:04.000 line:50% position:0% size:75% align:left\nHi."
     refute_includes output, '#<'
+  end
+
+  TWO_LINE_KARAOKE_ASS = <<~ASS
+    [Script Info]
+    Title: fixture
+
+    [V4+ Styles]
+    Format: Name
+    Style: region:musky
+
+    [Events]
+    Format: Layer, Start, End, Style, Name, MarginL, MarginR, MarginV, Effect, Text
+    Dialogue: 0,0:00:01.00,0:00:05.00,region:musky,,0,0,0,,{\\k100}One line{\\k100}\\NTwo line
+  ASS
+
+  def test_word_split_lines_overlap_without_merge_flag
+    output = run_ass2vtt(TWO_LINE_KARAOKE_ASS, '-w')
+
+    assert_includes output, "00:00:01.000 --> 00:00:07.000 line:50% position:0% size:75% align:left\nOne line<00:00:02.000>"
+    assert_includes output, "00:00:02.000 --> 00:00:07.000 line:50% position:0% size:75% align:left\nTwo line<00:00:03.000>"
+  end
+
+  def test_merge_flag_stacks_concurrent_lines_into_single_cues
+    output = run_ass2vtt(TWO_LINE_KARAOKE_ASS, '-w -m')
+
+    assert_includes output, "00:00:01.000 --> 00:00:02.000 line:50% position:0% size:75% align:left\nOne line<00:00:02.000>\n\n"
+    assert_includes output, "00:00:02.000 --> 00:00:07.000 line:50% position:0% size:75% align:left\nOne line<00:00:02.000>\nTwo line<00:00:03.000>\n\n"
+  end
+
+  private
+
+  def run_ass2vtt(source, flags = '')
+    fixture = File.join(Dir.tmpdir, 'ass2vtt_fixture.ass')
+    File.write(fixture, source)
+
+    `ruby #{File.join(__dir__, '..', 'ass2vtt.rb')} #{flags} "#{fixture}" 2>/dev/null`
   end
 end

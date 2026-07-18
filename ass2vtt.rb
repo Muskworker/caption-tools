@@ -24,6 +24,7 @@ class Ass2Vtt
   def self.run
     @file = ARGV[-1]
     @dividing_words = ARGV.include?('--words') || ARGV.include?('-w')
+    merging = ARGV.include?('--merge') || ARGV.include?('-m')
 
     vtt = ASS.read(@file)
     all_cues = vtt.cues
@@ -95,6 +96,7 @@ class Ass2Vtt
 
     cues = cue_groups.values.flatten
     cues.each { |cue| cue.style = settings_for(cue.style) }
+    cues = Cue.merge_concurrent(cues) if merging
 
     puts VTT.new('WEBVTT', cues)
   end
