@@ -7,6 +7,16 @@ require './lib/ass'
 describe Cue do
   HESITATING_CUE = "Dialogue: 0,0:00:02.68,0:00:04.40,Default,,0,0,0,,I see you shiver with antici...\n"
   RESUMING_CUE = "Dialogue: 0,0:00:09.23,0:00:10.28,Default,,0,0,0,,_pation.\n"
+  PLAIN_VTT_CUE = "00:00:01.000 --> 00:00:02.000\nhello"
+  STYLED_VTT_CUE = "00:00:01.000 --> 00:00:02.000 line:50% align:left\nhello"
+
+  it 'should round-trip a cue that has no settings' do
+    _(Cue.parse(PLAIN_VTT_CUE).to_s).must_equal("00:00:01.000 --> 00:00:02.000\nhello\n\n")
+  end
+
+  it 'should round-trip a cue that has settings' do
+    _(Cue.parse(STYLED_VTT_CUE).to_s).must_equal("00:00:01.000 --> 00:00:02.000 line:50% align:left\nhello\n\n")
+  end
 
   # If we are splitting words
   # and a unit ends with an ellipsis

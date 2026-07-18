@@ -1,5 +1,4 @@
 require_relative 'cue'
-require_relative 'duration'
 
 class VTT
   attr_accessor :head, :cues
@@ -25,15 +24,8 @@ class VTT
     head + "\n\n" + cues.sort.collect(&:to_s).join
   end
 
+  # Parse a WebVTT cue block. Delegates to Cue.parse.
   def self.parse_cue(cue)
-    timing = cue.lines[0].partition(' --> ')
-
-    start = Duration.parse(timing[0])
-    end_time = Duration.parse(timing[2])
-
-    style = timing[2][/(?<= ).*(?=\n)/] || ''
-    text = cue.lines[1..-1].join.strip
-
-    Cue.new(start, end_time, text, style)
+    Cue.parse(cue)
   end
 end

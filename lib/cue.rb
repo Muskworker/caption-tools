@@ -6,6 +6,8 @@ class Cue
   include Comparable
   attr_accessor :start, :end, :text, :style
 
+  # Parse a WebVTT cue block (timing line, optional settings, text lines).
+  # Returns: A Cue object.
   def self.parse(cue)
     timing = cue.lines[0].partition(' --> ')
 
